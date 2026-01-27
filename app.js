@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
   const checkBtn = document.getElementById("checkBtn");
   const clearBtn = document.getElementById("clearBtn");
   const textInput = document.getElementById("textInput");
@@ -101,6 +100,12 @@ document.addEventListener("DOMContentLoaded", () => {
     let ai = 0;
     let human = 0;
 
+    const jpCharCount = (text.match(/[ぁ-ん一-龥]/g) || []).length;
+    if (jpCharCount < 5) {
+      human += 20;
+      return { ai, human };
+    }
+
     if (text.length < 80) {
       human += 15;
     } else if (text.length < 200) {
@@ -109,26 +114,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const sentences = text.split("。").filter(Boolean);
     const lengths = sentences.map(s => s.length);
-    const avg = lengths.reduce((a,b)=>a+b,0) / Math.max(1, lengths.length);
-    const variance = lengths.reduce((s,l)=>s+(l-avg)**2,0) / Math.max(1, lengths.length);
+    const avg = lengths.reduce((a, b) => a + b, 0) / Math.max(1, lengths.length);
+    const variance =
+      lengths.reduce((sum, l) => sum + Math.pow(l - avg, 2), 0) /
+      Math.max(1, lengths.length);
 
     if (avg > 40) ai += 8;
     if (variance > 300) human += 10;
     else ai += 4;
 
-    ["しかし","また","一方で","つまり"].forEach(w => {
+    ["しかし", "また", "一方で", "つまり"].forEach(w => {
       if (text.includes(w)) ai += 4;
     });
 
-    ["私は","思う","感じる"].forEach(w => {
+    ["私は", "思う", "感じる"].forEach(w => {
       if (text.includes(w)) human += 8;
     });
 
-    ["たぶん","かもしれない"].forEach(w => {
+    ["たぶん", "かもしれない"].forEach(w => {
       if (text.includes(w)) human += 6;
     });
 
-    ["ちょっと","なんか"].forEach(w => {
+    ["ちょっと", "なんか"].forEach(w => {
       if (text.includes(w)) human += 6;
     });
 

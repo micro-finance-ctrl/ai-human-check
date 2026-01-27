@@ -1,5 +1,5 @@
 // =====================
-// 理由プール（表示用）
+// 表示用理由プール
 // =====================
 const AI_REASONS = [
   "文章構造が論理的に整いすぎている",
@@ -23,7 +23,7 @@ const HUMAN_REASONS = [
 ];
 
 // =====================
-// 判定メイン
+// 判定ボタン
 // =====================
 document.getElementById("checkBtn").addEventListener("click", () => {
   const text = document.getElementById("textInput").value.trim();
@@ -31,48 +31,44 @@ document.getElementById("checkBtn").addEventListener("click", () => {
 
   const analysis = analyzeText(text);
 
-  let aiScore = 50;
-  let humanScore = 50;
-
-  aiScore += analysis.ai;
-  humanScore += analysis.human;
-
-  // 正規化
+  let aiScore = 50 + analysis.ai;
   aiScore = Math.max(5, Math.min(95, aiScore));
-  humanScore = 100 - aiScore;
+  const humanScore = 100 - aiScore;
 
   document.getElementById("aiScore").textContent = aiScore;
   document.getElementById("humanScore").textContent = humanScore;
 
-  const aiList = document.getElementById("aiReasons");
-  const humanList = document.getElementById("humanReasons");
-  aiList.innerHTML = "";
-  humanList.innerHTML = "";
+  const aiBlock = document.getElementById("aiBlock");
+  const humanBlock = document.getElementById("humanBlock");
+
+  document.getElementById("aiReasons").innerHTML = "";
+  document.getElementById("humanReasons").innerHTML = "";
 
   if (aiScore >= humanScore) {
-    showTopReasons(aiList, AI_REASONS);
-    document.querySelector(".ai-title").style.display = "block";
-    document.querySelector(".human-title").style.display = "none";
+    aiBlock.style.display = "block";
+    humanBlock.style.display = "none";
+    showTop3("aiReasons", AI_REASONS);
   } else {
-    showTopReasons(humanList, HUMAN_REASONS);
-    document.querySelector(".ai-title").style.display = "none";
-    document.querySelector(".human-title").style.display = "block";
+    aiBlock.style.display = "none";
+    humanBlock.style.display = "block";
+    showTop3("humanReasons", HUMAN_REASONS);
   }
 
   document.getElementById("result").classList.remove("hidden");
 });
 
 // =====================
-// 文章解析
+// 文章解析ロジック
 // =====================
 function analyzeText(text) {
   const sentences = text.split("。").filter(Boolean);
-  const sentenceLengths = sentences.map(s => s.length);
-  const avgLen = sentenceLengths.reduce((a, b) => a + b, 0) / sentenceLengths.length;
+  const lengths = sentences.map(s => s.length);
+  const avg =
+    lengths.reduce((a, b) => a + b, 0) / Math.max(lengths.length, 1);
 
   const variance =
-    sentenceLengths.reduce((sum, len) => sum + Math.pow(len - avgLen, 2), 0) /
-    sentenceLengths.length;
+    lengths.reduce((sum, l) => sum + Math.pow(l - avg, 2), 0) /
+    Math.max(lengths.length, 1);
 
   const connectors = ["しかし", "また", "一方で", "つまり"];
   const subjective = ["私は", "思う", "感じる"];
@@ -83,13 +79,13 @@ function analyzeText(text) {
   let human = 0;
 
   // 文長
-  if (avgLen > 40) ai += 8;
+  if (avg > 40) ai += 8;
   if (variance > 300) human += 10;
   else ai += 5;
 
   // 接続詞
   connectors.forEach(w => {
-    if (text.includes(w)) ai += 5;
+    if (text.noteIncludes?.(w) || text.includes(w)) ai += 4;
   });
 
   // 主観・曖昧・口語
@@ -109,7 +105,8 @@ function analyzeText(text) {
 // =====================
 // 理由表示
 // =====================
-function showTopReasons(target, pool) {
+function showTop3(targetId, pool) {
+  const ul = document.getElementById(targetId);
   const selected = [...pool]
     .sort(() => 0.5 - Math.random())
     .slice(0, 3);
@@ -117,7 +114,7 @@ function showTopReasons(target, pool) {
   selected.forEach(r => {
     const li = document.createElement("li");
     li.textContent = r;
-    target.appendChild(li);
+    ul.appendChild(li);
   });
 }
 
@@ -127,4 +124,6 @@ function showTopReasons(target, pool) {
 document.getElementById("clearBtn").addEventListener("click", () => {
   document.getElementById("textInput").value = "";
   document.getElementById("result").classList.add("hidden");
+  document.getElementById("aiBlock").style.display = "none";
+  document.getElementById("humanBlock").style.display = "none";
 });

@@ -1,8 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const textInput = document.getElementById("textInput");
   const checkBtn = document.getElementById("checkBtn");
   const clearBtn = document.getElementById("clearBtn");
-  const textInput = document.getElementById("textInput");
 
+  const resultEl = document.getElementById("result");
   const aiScoreEl = document.getElementById("aiScore");
   const humanScoreEl = document.getElementById("humanScore");
 
@@ -12,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const aiReasonsEl = document.getElementById("aiReasons");
   const humanReasonsEl = document.getElementById("humanReasons");
 
-  const resultEl = document.getElementById("result");
+  /* ========= 理由プール（削減なし） ========= */
 
   const AI_REASONS = [
     "論理構造が一貫している",
@@ -60,6 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
     "完成度が一定でない"
   ];
 
+  /* ========= イベント ========= */
+
   checkBtn.addEventListener("click", () => {
     const text = textInput.value.trim();
     if (!text) return;
@@ -92,109 +95,110 @@ document.addEventListener("DOMContentLoaded", () => {
     humanBlock.style.display = "none";
   });
 
+  /* ========= 判定ロジック（削減なし） ========= */
+
   function analyze(text) {
     const len = text.length;
+    let score = 50;
 
     const jpChars = (text.match(/[ぁ-ん一-龥]/g) || []).length;
     const jpRate = jpChars / Math.max(1, len);
     const particles = (text.match(/は|が|を|に|で|と|も|の/g) || []).length;
 
-    // ===== 判定不能フェーズ =====
+    /* --- 判定不能フェーズ --- */
     if (
       len < 40 ||
       jpRate < 0.25 ||
       jpChars < 12 ||
       particles === 0
     ) {
-      const bias = Math.random() * 5;
-      return {
-        ai: Math.round(5 + bias),
-        human: Math.round(95 - bias)
-      };
+      const bias = Math.random() * 6;
+      const ai = Math.round(5 + bias);
+      return { ai, human: 100 - ai };
     }
 
-    // ===== 詳細判定フェーズ =====
-    let score = 50;
+    /* --- 詳細判定フェーズ --- */
 
     // 1. 文字数
-    score += Math.min(10, (len - 80) * 0.04);
+    score += Math.min(12, (len - 80) * 0.04);
 
     // 2. 日本語密度
-    score += (jpRate - 0.45) * 20;
+    score += (jpRate - 0.45) * 22;
 
     // 3. 文数
     const sentences = text.split(/[。！？]/).filter(Boolean);
-    score += Math.min(12, sentences.length * 2);
+    score += Math.min(14, sentences.length * 2);
 
     // 4. 文長分散
     if (sentences.length > 1) {
       const lengths = sentences.map(s => s.length);
-      const avg = lengths.reduce((a,b)=>a+b,0)/lengths.length;
-      const variance = lengths.reduce((s,l)=>s+(l-avg)**2,0)/lengths.length;
+      const avg = lengths.reduce((a,b)=>a+b,0) / lengths.length;
+      const variance = lengths.reduce((s,l)=>s+(l-avg)**2,0) / lengths.length;
       score += variance < 180 ? 6 : -6;
     }
 
     // 5. 接続詞
     ["しかし","つまり","一方で","また","そのため","なお"].forEach(w=>{
-      if(text.includes(w)) score += 2;
+      if (text.includes(w)) score += 2;
     });
 
     // 6. 主観語
     ["思う","感じる","正直","たぶん","かもしれない"].forEach(w=>{
-      if(text.includes(w)) score -= 3;
+      if (text.includes(w)) score -= 3;
     });
 
     // 7. 感情記号
-    if(/[！!？?]{2,}/.test(text)) score -= 5;
+    if (/[！!？?]{2,}/.test(text)) score -= 5;
 
-    // 8. 草
-    if(/[wｗ]{2,}/.test(text)) score -= 4;
+    // 8. 草・崩れ
+    if (/[wｗ]{2,}/.test(text)) score -= 4;
 
     // 9. 語彙多様性
     const uniqueRate = new Set(text).size / len;
     score += (0.38 - uniqueRate) * 25;
 
     // 10. 数字・列挙
-    if(/\d/.test(text)) score += 3;
-    if(/①|②|・|- /.test(text)) score += 3;
+    if (/\d/.test(text)) score += 3;
+    if (/①|②|・|- /.test(text)) score += 3;
 
-    // 11. 言い切り
+    // 11. 言い切り率
     const endings = (text.match(/だ。|です。/g) || []).length;
     score += endings * 1.2;
 
     // 12. 曖昧語
     ["まあ","なんか","ちょっと"].forEach(w=>{
-      if(text.includes(w)) score -= 2;
+      if (text.includes(w)) score -= 2;
     });
 
     // 13. 記号率
-    const symbolRate = (text.match(/[^ぁ-ん一-龥a-zA-Z0-9]/g) || []).length / len;
+    const symbolRate =
+      (text.match(/[^ぁ-ん一-龥a-zA-Z0-9]/g) || []).length / len;
     score += (symbolRate - 0.18) * 12;
 
     // 14. 改行
     score += (text.split("\n").length - 1) * 1.5;
 
-    // 15. 冗長性
-    if(len / Math.max(1, sentences.length) > 90) score -= 4;
+    // 15. 助詞密度
+    score += Math.min(6, particles * 0.8);
 
-    // 16. 助詞密度
-    score += Math.min(5, particles * 0.8);
-
-    // 17. 英字率
+    // 16. 英字率
     const alphaRate = (text.match(/[a-zA-Z]/g) || []).length / len;
     score -= alphaRate * 15;
 
-    // 18. 同一語反復
+    // 17. 同一語反復
     const words = text.split(/\s+/);
     const dupRate = 1 - new Set(words).size / Math.max(1, words.length);
     score += dupRate * 10;
 
-    // 19. 比喩語
+    // 18. 比喩語
     ["まるで","ような","みたい"].forEach(w=>{
-      if(text.includes(w)) score -= 2;
+      if (text.includes(w)) score -= 2;
     });
 
-    // 20. 微ランダム
+    // 19. 冗長性
+    if (len / sentences.length > 90) score -= 4;
+
+    // 20. 微ランダム（固定％回避）
     score += (Math.random() - 0.5) * 3;
 
     score = Math.round(Math.max(0, Math.min(100, score)));
@@ -207,6 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function pick3(target, pool) {
     pool
+      .slice()
       .sort(() => 0.5 - Math.random())
       .slice(0, 3)
       .forEach(r => {

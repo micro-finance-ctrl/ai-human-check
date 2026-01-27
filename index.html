@@ -4,38 +4,62 @@
   <meta charset="UTF-8">
   <title>この文章、AIが作った？人間が作った？</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- メタディスクリプション（表示される） -->
+  <meta name="description" content="文章の特徴から、AIが作成した文章か人間が書いた文章かを参考情報として判定するシンプルなWebツールです。文章表現や文体の傾向を可視化します。">
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <main class="container">
-    <h1>この文章、AIが作った？人間が作った？</h1>
-    <p class="subtitle">文章を貼り付けるだけで判定します</p>
+  <div class="layout">
 
-    <textarea id="textInput" placeholder="ここに文章を貼り付けてください"></textarea>
+    <!-- サイド広告（ads.js が操作する。触らない） -->
+    <aside id="ad-side" aria-label="広告"></aside>
 
-    <div class="buttons">
-      <button id="checkBtn">判定する</button>
-      <button id="clearBtn" class="clear">クリア</button>
-    </div>
+    <!-- メイン（既存ロジックそのまま） -->
+    <main class="main">
+      <h1>この文章、AIが作った？人間が作った？</h1>
+      <p class="subtitle">
+        文章を貼り付けるだけで、AIらしさ・人間らしさを参考として判定します。
+      </p>
 
-    <div id="result" class="hidden">
-      <div class="score">
-        🤖 AIっぽさ：<span id="aiScore"></span>%<br>
-        🧑 人間っぽさ：<span id="humanScore"></span>%
+      <textarea
+        id="textInput"
+        placeholder="ここに文章を貼り付けてください"
+        rows="8"></textarea>
+
+      <div class="buttons">
+        <button id="checkBtn">判定する</button>
+        <button id="clearBtn" class="clear">クリア</button>
       </div>
 
-      <div id="aiBlock" class="reason-block">
-        <h3>AIっぽい理由（上位3つ）</h3>
-        <ul id="aiReasons"></ul>
-      </div>
+      <section id="result" class="hidden">
+        <div class="score">
+          🤖 AIっぽさ：<span id="aiScore">-</span>%<br>
+          🧑 人間っぽさ：<span id="humanScore">-</span>%
+        </div>
 
-      <div id="humanBlock" class="reason-block">
-        <h3>人間っぽい理由（上位3つ）</h3>
-        <ul id="humanReasons"></ul>
-      </div>
-    </div>
-  </main>
+        <div id="aiBlock" class="reason-block">
+          <h3>AIっぽい理由（上位3つ）</h3>
+          <ul id="aiReasons"></ul>
+        </div>
 
+        <div id="humanBlock" class="reason-block">
+          <h3>人間っぽい理由（上位3つ）</h3>
+          <ul id="humanReasons"></ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 下部広告（ads.js が操作する。触らない） -->
+  <footer id="ad-bottom" aria-label="広告"></footer>
+
+  <!-- 既存JS（そのまま） -->
   <script src="app.js"></script>
+
+  <!-- 広告JS（最後・非干渉） -->
+  <script src="ads.js"></script>
 </body>
 </html>

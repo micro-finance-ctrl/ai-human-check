@@ -26,7 +26,7 @@
   // =========================
   // 共通処理
   // =========================
-  function isMobile() {
+   function isMobile() {
     return /iPhone|Android.+Mobile/.test(navigator.userAgent);
   }
 

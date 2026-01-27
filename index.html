@@ -3,29 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <title>この文章、AIが作った？人間が作った？</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <meta name="description" content="文章の特徴から、AIが作成した文章か人間が書いた文章かを参考情報として判定するシンプルなWebツールです。">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <!-- 上サイド広告 -->
-  <div id="ad-side-top" class="ad-box"></div>
+<div class="page">
+
+  <!-- サイド広告（PC表示） -->
+  <aside class="sidebar">
+    <div id="ad-side-top" class="ad-box"></div>
+    <div id="ad-side-bottom" class="ad-box"></div>
+  </aside>
 
   <!-- メイン -->
   <main class="main">
     <h1>この文章、AIが作った？人間が作った？</h1>
     <p class="subtitle">
-      文章を貼り付けるだけで、AIらしさ・人間らしさを参考として判定します。
+      文章を貼るだけで、AIらしさ・人間らしさを参考として判定します。
     </p>
 
-    <textarea
-      id="textInput"
-      placeholder="ここに文章を貼り付けてください"
-      rows="8"></textarea>
+    <textarea id="textInput" rows="8" placeholder="ここに文章を貼り付けてください"></textarea>
 
     <div class="buttons">
       <button id="checkBtn">判定する</button>
@@ -50,13 +49,12 @@
     </section>
   </main>
 
-  <!-- 下サイド広告 -->
-  <div id="ad-side-bottom" class="ad-box"></div>
+</div>
 
-  <!-- フッター広告 -->
-  <footer id="ad-bottom" class="ad-box"></footer>
+<!-- 下広告（PC・スマホ共通） -->
+<div id="ad-bottom" class="ad-box"></div>
 
-  <script src="app.js"></script>
-  <script src="ads.js"></script>
+<script src="app.js"></script>
+<script src="ads.js"></script>
 </body>
 </html>

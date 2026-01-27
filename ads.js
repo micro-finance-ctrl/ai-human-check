@@ -120,14 +120,17 @@
     return ADS[Math.floor(Math.random() * ADS.length)];
   }
 
+(() => {
   function renderAll() {
-    const side = document.getElementById("ad-side");
+    const sideTop = document.getElementById("ad-side-top");
+    const sideBottom = document.getElementById("ad-side-bottom");
     const bottom = document.getElementById("ad-bottom");
-    if (side) side.innerHTML = pickRandom().html;
+
+    if (sideTop) sideTop.innerHTML = pickRandom().html;
+    if (sideBottom) sideBottom.innerHTML = pickRandom().html;
     if (bottom) bottom.innerHTML = pickRandom().html;
   }
 
-  // ★ ここが修正点
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", renderAll);
   } else {

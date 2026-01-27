@@ -1,20 +1,17 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>この文章、AIが作った？人間が作った？</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="container">
     <h1>この文章、AIが作った？人間が作った？</h1>
     <p class="subtitle">文章を貼り付けるだけで判定します</p>
 
-    <textarea
-      id="textInput"
-      placeholder="ここに文章を貼り付けてください"
-    ></textarea>
+    <textarea id="textInput" placeholder="ここに文章を貼り付けてください"></textarea>
 
     <div class="buttons">
       <button id="checkBtn">判定する</button>
@@ -23,17 +20,15 @@
 
     <div id="result" class="hidden">
       <div class="score">
-        🤖 AIっぽさ：<span id="aiScore"></span>%<br />
+        🤖 AIっぽさ：<span id="aiScore"></span>%<br>
         🧑 人間っぽさ：<span id="humanScore"></span>%
       </div>
 
-      <!-- AI側理由 -->
       <div id="aiBlock" class="reason-block">
         <h3>AIっぽい理由（上位3つ）</h3>
         <ul id="aiReasons"></ul>
       </div>
 
-      <!-- 人間側理由 -->
       <div id="humanBlock" class="reason-block">
         <h3>人間っぽい理由（上位3つ）</h3>
         <ul id="humanReasons"></ul>

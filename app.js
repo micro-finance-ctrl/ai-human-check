@@ -23,15 +23,15 @@ const HUMAN_REASONS = [
 ];
 
 // =====================
-// 判定ボタン
+// 判定処理
 // =====================
 document.getElementById("checkBtn").addEventListener("click", () => {
   const text = document.getElementById("textInput").value.trim();
   if (!text) return;
 
-  const analysis = analyzeText(text);
+  const { ai, human } = analyzeText(text);
 
-  let aiScore = 50 + analysis.ai;
+  let aiScore = 50 + ai - human;
   aiScore = Math.max(5, Math.min(95, aiScore));
   const humanScore = 100 - aiScore;
 
@@ -58,7 +58,7 @@ document.getElementById("checkBtn").addEventListener("click", () => {
 });
 
 // =====================
-// 文章解析ロジック
+// 文章解析（安全版）
 // =====================
 function analyzeText(text) {
   const sentences = text.split("。").filter(Boolean);
@@ -78,14 +78,14 @@ function analyzeText(text) {
   let ai = 0;
   let human = 0;
 
-  // 文長
+  // 文長とばらつき
   if (avg > 40) ai += 8;
   if (variance > 300) human += 10;
-  else ai += 5;
+  else ai += 4;
 
   // 接続詞
   connectors.forEach(w => {
-    if (text.noteIncludes?.(w) || text.includes(w)) ai += 4;
+    if (text.includes(w)) ai += 4;
   });
 
   // 主観・曖昧・口語
@@ -107,10 +107,7 @@ function analyzeText(text) {
 // =====================
 function showTop3(targetId, pool) {
   const ul = document.getElementById(targetId);
-  const selected = [...pool]
-    .sort(() => 0.5 - Math.random())
-    .slice(0, 3);
-
+  const selected = [...pool].sort(() => 0.5 - Math.random()).slice(0, 3);
   selected.forEach(r => {
     const li = document.createElement("li");
     li.textContent = r;

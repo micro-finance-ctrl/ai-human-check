@@ -198,53 +198,58 @@ document.addEventListener("DOMContentLoaded", () => {
     // 19. 冗長性
     if (len / sentences.length > 90) score -= 4;
 
-    // 20. 微ランダム（固定％回避）
-    score += (Math.random() - 0.5) * 3;
+// 20. 微ランダム（固定％回避）
+score += (Math.random() - 0.5) * 3;
+
 // ===============================
-// 21. 短文・感想文 人間補正（追加）
+// 21. 短文・感想文 人間補正
 // ===============================
 
-// 短文は判断が難しいため人間寄りに補正
 if (len < 150) score -= 15;
 if (len < 80) score -= 25;
 
-// 主観的な感想表現
-if (/思います|感じました|よかった|わかりやすかった|〜と思う/.test(text)) {
+if (/思います|感じました|よかった|わかりやすかった|と思う/.test(text)) {
   score -= 12;
 }
 
-// 人名・対人評価（〇〇さん）
 if (/さん/.test(text)) {
   score -= 18;
 }
 
-// 感想文特有の評価構文
-if (/よかったです|だと思いました|〜でした/.test(text)) {
+if (/よかったです|だと思いました|でした。?$/.test(text)) {
   score -= 10;
 }
 
 // ===============================
-// ▲ ここまで追加
+// 22. 感想文・レポート用 人間強化補正（★ここを追加）
 // ===============================
 
+// 「〜と思った」「〜と感じた」が複数回出る感想文
+const subjectiveCount =
+  (text.match(/思った|感じた|すごいと思|驚い|と思う/g) || []).length;
+if (subjectiveCount >= 2) score -= 20;
 
-    score = Math.round(Math.max(0, Math.min(100, score)));
+// 映画・作品・感想ワード
+if (/映画|作品|レポート|感想|見てみたい/.test(text)) {
+  score -= 15;
+}
 
-    return {
-      ai: score,
-      human: 100 - score
-    };
-  }
+// 自己言及が多い（自分は・自分が）
+const selfCount =
+  (text.match(/自分|私は|僕は/g) || []).length;
+if (selfCount >= 2) score -= 10;
 
-  function pick3(target, pool) {
-    pool
-      .slice()
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 3)
-      .forEach(r => {
-        const li = document.createElement("li");
-        li.textContent = r;
-        target.appendChild(li);
-      });
-  }
-});
+// 完全な主観評価文（感想締め）
+if (/(よかったです|だと思いました|でした。?)$/.test(text.trim())) {
+  score -= 10;
+}
+
+// ===============================
+// ★ 最終処理（ここは動かさない）
+// ===============================
+score = Math.round(Math.max(0, Math.min(100, score)));
+
+return {
+  ai: score,
+  human: 100 - score
+};

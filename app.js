@@ -15,68 +15,44 @@ document.addEventListener("DOMContentLoaded", () => {
   const resultEl = document.getElementById("result");
 
   const AI_REASONS = [
-    "文章構造が論理的に整いすぎている",
-    "抽象的な概念が多く使われている",
-    "感情表現が少ない",
-    "文の長さが均一に近い",
-    "接続詞が多用されている",
-    "客観的で教科書的な書き方になっている",
-    "言い切り表現が多い",
-    "情報の取捨選択が合理的すぎる",
-    "主語が省略されても意味が通る",
-    "結論までの流れが滑らかすぎる",
-    "比喩が一般的で安全",
-    "説明が過不足なくまとまっている",
-    "読み手を強く意識した構成",
-    "迷いや試行錯誤が見えにくい",
-    "語彙のトーンが一定",
-    "論点が整理されすぎている",
+    "論理構造が一貫している",
+    "文のリズムが均一",
+    "説明が整理されすぎている",
+    "抽象度が高い",
+    "接続詞の使い方が安定している",
+    "主張と根拠が明確",
+    "語彙の選択が安全",
     "文法的な揺れが少ない",
-    "否定や弱音が少ない",
-    "表現にクセが出にくい",
-    "全体として正しすぎる印象"
+    "感情の振れ幅が小さい",
+    "全体が俯瞰的"
   ];
 
   const HUMAN_REASONS = [
-    "文の長さにばらつきがある",
-    "主観的な表現が含まれている",
-    "感情がにじむ言葉がある",
-    "曖昧な言い回しが使われている",
+    "文の勢いにムラがある",
+    "論理が一部飛んでいる",
+    "感情が先に出ている",
     "口語的な表現が混ざっている",
-    "論理が少し飛んでいる部分がある",
-    "一部だけ語気が強い",
-    "回りくどい説明が含まれている",
-    "具体的な体験が挟まっている",
     "言い切らずに終わる文がある",
-    "接続が雑な箇所がある",
-    "文法的に少し崩れている",
-    "書き直した痕跡を感じる",
-    "勢いで書いた印象がある",
-    "表現に個人のクセがある",
-    "説明不足な部分がある",
-    "余計に感じる一文がある",
-    "感情と言葉が完全に一致していない",
-    "情報の順番が最適ではない",
-    "人柄を想像できる引っかかりがある"
+    "説明不足な箇所がある",
+    "書き直した痕跡がある",
+    "主観が強い",
+    "表現にクセがある",
+    "人間的な迷いが見える"
   ];
 
   checkBtn.addEventListener("click", () => {
     const text = textInput.value.trim();
     if (!text) return;
 
-    const { ai, human } = analyze(text);
+    const result = analyze(text);
 
-    let aiScore = 50 + ai - human;
-    aiScore = Math.max(5, Math.min(95, aiScore));
-    const humanScore = 100 - aiScore;
-
-    aiScoreEl.textContent = aiScore;
-    humanScoreEl.textContent = humanScore;
+    aiScoreEl.textContent = result.ai;
+    humanScoreEl.textContent = result.human;
 
     aiReasonsEl.innerHTML = "";
     humanReasonsEl.innerHTML = "";
 
-    if (aiScore >= humanScore) {
+    if (result.ai > result.human) {
       aiBlock.style.display = "block";
       humanBlock.style.display = "none";
       pick3(aiReasonsEl, AI_REASONS);
@@ -97,57 +73,93 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function analyze(text) {
-    let ai = 0;
-    let human = 0;
+    let score = 50; // 中立スタート（実数）
 
-    const jpCharCount = (text.match(/[ぁ-ん一-龥]/g) || []).length;
-    if (jpCharCount < 5) {
-      human += 20;
-      return { ai, human };
+    const len = text.length;
+
+    // ① 文字数（短文は人間寄りだが緩やか）
+    if (len < 30) score -= 12;
+    else if (len < 80) score -= 6;
+    else if (len > 400) score += 6;
+
+    // ② 日本語密度
+    const jpCount = (text.match(/[ぁ-ん一-龥]/g) || []).length;
+    const jpRate = jpCount / Math.max(1, len);
+    score += (jpRate - 0.4) * 20; // 密度が高すぎてもAI寄り
+
+    // ③ 文数
+    const sentences = text.split(/[。！？]/).filter(Boolean);
+    score += Math.min(10, sentences.length * 2);
+
+    // ④ 文長ばらつき
+    if (sentences.length > 1) {
+      const lengths = sentences.map(s => s.length);
+      const avg = lengths.reduce((a,b)=>a+b,0)/lengths.length;
+      const variance = lengths.reduce((s,l)=>s+(l-avg)**2,0)/lengths.length;
+      score += variance < 150 ? 6 : -6;
     }
 
-    if (text.length < 80) {
-      human += 15;
-    } else if (text.length < 200) {
-      human += 5;
-    }
+    // ⑤ 接続詞密度
+    const logicWords = ["しかし","つまり","一方で","また","そのため"];
+    const logicHits = logicWords.filter(w => text.includes(w)).length;
+    score += logicHits * 3;
 
-    const sentences = text.split("。").filter(Boolean);
-    const lengths = sentences.map(s => s.length);
-    const avg = lengths.reduce((a, b) => a + b, 0) / Math.max(1, lengths.length);
-    const variance =
-      lengths.reduce((sum, l) => sum + Math.pow(l - avg, 2), 0) /
-      Math.max(1, lengths.length);
+    // ⑥ 主観語
+    const humanWords = ["思う","感じる","正直","たぶん","かもしれない"];
+    const humanHits = humanWords.filter(w => text.includes(w)).length;
+    score -= humanHits * 4;
 
-    if (avg > 40) ai += 8;
-    if (variance > 300) human += 10;
-    else ai += 4;
+    // ⑦ 感情記号
+    if (/[！!？?]{2,}/.test(text)) score -= 6;
 
-    ["しかし", "また", "一方で", "つまり"].forEach(w => {
-      if (text.includes(w)) ai += 4;
+    // ⑧ 草・崩れ
+    if (/[wｗ]{2,}/.test(text)) score -= 5;
+
+    // ⑨ 語彙多様性
+    const uniqueRate = new Set(text).size / len;
+    score += (0.35 - uniqueRate) * 30;
+
+    // ⑩ 数字・列挙
+    if (/\d/.test(text)) score += 4;
+    if (/・|①|②|- /.test(text)) score += 4;
+
+    // ⑪ 言い切り率
+    const endCount = (text.match(/だ。|です。/g) || []).length;
+    score += endCount * 1.5;
+
+    // ⑫ 曖昧語
+    const vague = ["まあ","なんか","ちょっと"];
+    vague.forEach(w => {
+      if (text.includes(w)) score -= 3;
     });
 
-    ["私は", "思う", "感じる"].forEach(w => {
-      if (text.includes(w)) human += 8;
-    });
+    // ⑬ 記号率
+    const symbolRate = (text.match(/[^ぁ-ん一-龥a-zA-Z0-9]/g) || []).length / len;
+    score += (symbolRate - 0.15) * 15;
 
-    ["たぶん", "かもしれない"].forEach(w => {
-      if (text.includes(w)) human += 6;
-    });
+    // ⑭ 改行構造
+    score += (text.split("\n").length - 1) * 2;
 
-    ["ちょっと", "なんか"].forEach(w => {
-      if (text.includes(w)) human += 6;
-    });
+    // ⑮ 微ランダム（固定値感を消す）
+    score += (Math.random() - 0.5) * 4;
 
-    return { ai, human };
+    // 最終整形
+    score = Math.round(Math.max(0, Math.min(100, score)));
+
+    return {
+      ai: score,
+      human: 100 - score
+    };
   }
 
-  function pick3(targetUl, pool) {
-    const selected = [...pool].sort(() => 0.5 - Math.random()).slice(0, 3);
-    selected.forEach(r => {
-      const li = document.createElement("li");
-      li.textContent = r;
-      targetUl.appendChild(li);
-    });
+  function pick3(target, pool) {
+    pool
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 3)
+      .forEach(r => {
+        const li = document.createElement("li");
+        li.textContent = r;
+        target.appendChild(li);
+      });
   }
 });

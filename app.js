@@ -198,76 +198,73 @@ document.addEventListener("DOMContentLoaded", () => {
     // 19. 冗長性
     if (len / sentences.length > 90) score -= 4;
 
-// 20. 微ランダム（固定％回避）
-score += (Math.random() - 0.5) * 3;
+// 20. 微ランダム
+  score += (Math.random() - 0.5) * 3;
 
-// ===============================
-// 21. 短文・感想文 人間補正
-// ===============================
+  // 21. 短文・感想文 人間補正
+  if (len < 150) score -= 15;
+  if (len < 80) score -= 25;
 
-if (len < 150) score -= 15;
-if (len < 80) score -= 25;
+  if (/思います|感じました|よかった|わかりやすかった|と思う/.test(text)) {
+    score -= 12;
+  }
 
-if (/思います|感じました|よかった|わかりやすかった|と思う/.test(text)) {
-  score -= 12;
+  if (/さん/.test(text)) score -= 18;
+  if (/よかったです|だと思いました|でした。?$/.test(text)) score -= 10;
+
+  // 22. 感想文・レポート用 人間強化補正
+  const subjectiveCount =
+    (text.match(/思った|感じた|すごいと思|驚い|と思う/g) || []).length;
+  if (subjectiveCount >= 2) score -= 20;
+
+  if (/映画|作品|レポート|感想|見てみたい/.test(text)) score -= 15;
+
+  const selfCount =
+    (text.match(/自分|私は|僕は/g) || []).length;
+  if (selfCount >= 2) score -= 10;
+
+  if (/(よかったです|だと思いました|でした。?)$/.test(text.trim())) {
+    score -= 10;
+  }
+
+  // 23. 体験＋感情＋理解
+  if (/驚/.test(text) && /大変|辛/.test(text) && /すごい|尊敬/.test(text)) {
+    score -= 25;
+  }
+
+  if (
+    /と思った。$|感じた。$/.test(text.trim()) &&
+    !/結論|まとめ|つまり/.test(text)
+  ) {
+    score -= 15;
+  }
+
+  score = Math.round(Math.max(0, Math.min(100, score)));
+
+  return {
+    ai: score,
+    human: 100 - score
+  };
 }
+document.addEventListener("DOMContentLoaded", () => {
+  const judgeBtn = document.getElementById("judgeBtn");
+  const clearBtn = document.getElementById("clearBtn");
+  const input = document.getElementById("inputText");
 
-if (/さん/.test(text)) {
-  score -= 18;
-}
+  if (!judgeBtn) {
+    console.error("judgeBtn が見つからない");
+    return;
+  }
 
-if (/よかったです|だと思いました|でした。?$/.test(text)) {
-  score -= 10;
-}
+  judgeBtn.addEventListener("click", () => {
+    const result = analyzeText(input.value);
+    console.log(result);
+    // 表示処理ここ
+  });
 
-// ===============================
-// 22. 感想文・レポート用 人間強化補正（★ここを追加）
-// ===============================
-
-// 「〜と思った」「〜と感じた」が複数回出る感想文
-const subjectiveCount =
-  (text.match(/思った|感じた|すごいと思|驚い|と思う/g) || []).length;
-if (subjectiveCount >= 2) score -= 20;
-
-// 映画・作品・感想ワード
-if (/映画|作品|レポート|感想|見てみたい/.test(text)) {
-  score -= 15;
-}
-
-// 自己言及が多い（自分は・自分が）
-const selfCount =
-  (text.match(/自分|私は|僕は/g) || []).length;
-if (selfCount >= 2) score -= 10;
-
-// 完全な主観評価文（感想締め）
-if (/(よかったです|だと思いました|でした。?)$/.test(text.trim())) {
-  score -= 10;
-}
-// ===============================
-// 23. 体験＋感情＋理解の人間補正（最重要）
-// ===============================
-if (
-  /驚/.test(text) &&
-  /大変|辛/.test(text) &&
-  /すごい|尊敬/.test(text)
-) {
-  score -= 25;
-}
-
-// 結論が曖昧な感想文
-if (
-  /と思った。$|感じた。$/.test(text.trim()) &&
-  !/結論|まとめ|つまり/.test(text)
-) {
-  score -= 15;
-}
-
-// ===============================
-// ★ 最終処理（ここは動かさない）
-// ===============================
-score = Math.round(Math.max(0, Math.min(100, score)));
-
-return {
-  ai: score,
-  human: 100 - score
-};
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      input.value = "";
+    });
+  }
+});

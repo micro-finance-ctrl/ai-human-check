@@ -23,10 +23,7 @@
     { id: "ad19", size: "336x280", weight: 1, html: `<a href="https://px.a8.net/svt/ejp?a8mat=4AVFS1+H9MV6+2KSK+67C4H" rel="nofollow" target="_blank"><img width="336" height="280" src="https://www25.a8.net/svt/bgt?aid=260127649029&wid=003&eno=01&mid=s00000012026001042000&mc=1"></a><img width="1" height="1" src="https://www11.a8.net/0.gif?a8mat=4AVFS1+H9MV6+2KSK+67C4H">` }
   ];
 
-  // =========================
-  // 共通処理
-  // =========================
-   function isMobile() {
+  function isMobile() {
     return /iPhone|Android.+Mobile/.test(navigator.userAgent);
   }
 

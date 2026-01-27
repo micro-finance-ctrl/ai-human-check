@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ===============================
-  // 判定ロジック（完全保持）
+  // 判定ロジック
   // ===============================
   function analyze(text) {
     const len = text.length;
@@ -88,14 +88,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const jpRate = jpChars / Math.max(1, len);
     const particles = (text.match(/は|が|を|に|で|と|も|の/g) || []).length;
 
-    // 判定不能フェーズ
+    // 判定不能（超短文など）
     if (len < 40 || jpRate < 0.25 || jpChars < 12 || particles === 0) {
-      const bias = Math.random() * 6;
-      const ai = Math.round(5 + bias);
+      const ai = Math.round(5 + Math.random() * 6);
       return { ai, human: 100 - ai };
     }
 
-    // 1〜19（元ロジック）
+    // 基本構造
     score += Math.min(12, (len - 80) * 0.04);
     score += (jpRate - 0.45) * 22;
 
@@ -104,8 +103,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (sentences.length > 1) {
       const lengths = sentences.map(s => s.length);
-      const avg = lengths.reduce((a,b)=>a+b,0) / lengths.length;
-      const variance = lengths.reduce((s,l)=>s+(l-avg)**2,0) / lengths.length;
+      const avg = lengths.reduce((a, b) => a + b, 0) / lengths.length;
+      const variance =
+        lengths.reduce((s, l) => s + (l - avg) ** 2, 0) / lengths.length;
       score += variance < 180 ? 6 : -6;
     }
 
@@ -153,10 +153,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (len / sentences.length > 90) score -= 4;
 
-    // 20. 微ランダム
+    // 微ランダム
     score += (Math.random() - 0.5) * 3;
 
-    // 21〜23 人間補正
+    // 人間補正
     if (len < 150) score -= 15;
     if (len < 80) score -= 25;
 

@@ -42,32 +42,46 @@
   });
 
   function isMobile() {
-    return window.matchMedia("(max-width:768px)").matches;
-  }
+  const ua = navigator.userAgent || "";
+  const isSmartphone = /iphone|ipod|android.+mobile/i.test(ua);
+  return isSmartphone;
+}
 
-  function weightedPick(list) {
-    const bag = [];
-    list.forEach(a => {
-      for (let i = 0; i < a.weight; i++) bag.push(a);
-    });
-    return bag[Math.floor(Math.random() * bag.length)];
-  }
+function weightedPick(list) {
+  const bag = [];
+  list.forEach(a => {
+    for (let i = 0; i < a.weight; i++) bag.push(a);
+  });
+  return bag[Math.floor(Math.random() * bag.length)];
+}
 
-  function renderAll() {
-    const sideTop = document.getElementById("ad-side-top");
-    const sideBottom = document.getElementById("ad-side-bottom");
-    const bottom = document.getElementById("ad-bottom");
+function renderAll() {
+  const sideTop = document.getElementById("ad-side-top");
+  const sideBottom = document.getElementById("ad-side-bottom");
+  const bottom = document.getElementById("ad-bottom");
 
-    if (isMobile()) {
-      const pool = ADS.filter(a => a.size === "300x250");
-      if (bottom && pool.length) bottom.innerHTML = weightedPick(pool).html;
-    } else {
-      const pcPool = ADS.filter(a => a.size === "468x60");
-      if (sideTop && pcPool.length) sideTop.innerHTML = weightedPick(pcPool).html;
-      if (sideBottom && pcPool.length) sideBottom.innerHTML = weightedPick(pcPool).html;
-      if (bottom) bottom.innerHTML = weightedPick(ADS).html;
+  if (isMobile()) {
+    // スマホ：下だけ
+    const pool = ADS.filter(a => a.size === "300x250");
+    if (bottom && pool.length) {
+      bottom.innerHTML = weightedPick(pool).html;
+    }
+  } else {
+    // PC：サイド2 + 下
+    const pcPool = ADS.filter(a => a.size === "468x60");
+
+    if (sideTop && pcPool.length) {
+      sideTop.innerHTML = weightedPick(pcPool).html;
+    }
+    if (sideBottom && pcPool.length) {
+      sideBottom.innerHTML = weightedPick(pcPool).html;
+    }
+    if (bottom) {
+      bottom.innerHTML = weightedPick(ADS).html;
     }
   }
+}
+
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", renderAll);

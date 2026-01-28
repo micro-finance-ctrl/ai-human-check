@@ -71,9 +71,11 @@ button.clear { background: #eee; }
 }
 
 /* 広告ボックスの高さ制御を解除（PC用） */
-@media (min-width: 769px) {
-  .ad-box {
-    min-height: auto;
-    align-items: flex-start;
+@media (max-width: 768px) {
+  .page {
+    display: block;
+  }
+  .sidebar {
+    display: none;
   }
 }

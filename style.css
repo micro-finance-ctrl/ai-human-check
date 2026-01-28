@@ -78,4 +78,8 @@ button.clear { background: #eee; }
   .sidebar {
     display: none;
   }
+html, body {
+  overscroll-behavior: none;
+}
+
 }
